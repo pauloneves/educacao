@@ -3,8 +3,10 @@
 Baixando arquivos de dados do censo
 """
 
+import io
 import os
 import glob
+import re
 import zipfile
 from itertools import chain
 
@@ -47,13 +49,14 @@ def unzip_dados():
     os.chdir('dados')
     try:
         zips = set(glob.glob('*.zip') + glob.glob('*.ZIP'))
-        for zip in zips:
-            with zipfile.ZipFile(zip, 'r') as zip_ref:
-                zip_ref.extractall(zip.split('.')[0])
+        for zip_file in zips:
+            print(zip_file)
+            with zipfile.ZipFile(zip_file, 'r') as zfile:
+                zfile.extractall(path=zip_file.split('.')[0])
+
     finally:
         os.chdir('..')
         
-
 
 
 if __name__ == '__main__':

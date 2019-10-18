@@ -4,12 +4,16 @@
 # ms-python.python added
 import os
 try:
-	os.chdir(os.path.join(os.getcwd(), '..\\..\Users\paulo\AppData\Local\Temp'))
+	os.chdir(os.path.join(os.getcwd(), '..\\..\..\Users\ppppp\AppData\Local\Temp'))
 	print(os.getcwd())
 except:
 	pass
 #%%
 from IPython import get_ipython
+
+#%%
+
+
 
 #%%
 import numpy as np
@@ -19,7 +23,7 @@ get_ipython().run_line_magic('matplotlib', 'notebook')
 
 
 #%%
-df_enem = pd.read_csv('dados/DADOS/MICRODADOS_ENEM_2018.csv', sep=';', encoding='iso8859-1')
+df_enem = pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv', sep=';', encoding='iso8859-1')
 
 
 #%%
@@ -28,9 +32,6 @@ df_enem.shape
 
 #%%
 df_rio = df_enem.loc[df_enem.NO_MUNICIPIO_ESC.str.lower() == 'rio de janeiro']
-
-
-#%%
 df_rio.shape
 
 
@@ -49,6 +50,10 @@ df_rio.shape
 #%%
 df_g = df_rio.loc[:, [ 'CO_ESCOLA','NU_NOTA_REDACAO']].groupby('CO_ESCOLA').agg(media=('NU_NOTA_REDACAO','mean'), num=('NU_NOTA_REDACAO','count')).sort_values('media', ascending=False)
 df_g.head()
+
+
+#%%
+
 
 
 #%%
@@ -94,7 +99,7 @@ df_melhores.shape
 
 
 #%%
-df_turmas = pd.read_csv('dados\Microdados_Censo_Escolar_2017\DADOS\TURMAS.CSV', sep='|', encoding='latin1')
+df_turmas = pd.read_csv('dados/Microdados_Censo_Escolar_2017/DADOS/TURMAS.ZIP', sep='|', encoding='latin1')
 
 
 #%%
@@ -103,4 +108,34 @@ df_turmas.head()
 
 #%%
 df_turmas.columns.tolist()
+
+
+#%%
+get_ipython().system('ls dados/microdados_educacao_basica_2018/microdados_ed_basica_2018/DADOS/b')
+
+
+#%%
+df_turmas = pd.concat([turmas_rio[turmas_rio.CO_MUNICIPIO == 3304557] for turmas_rio in pd.read_csv('dados/microdados_educacao_basica_2018/microdados_ed_basica_2018/DADOS/TURMAS.zip', sep='|', encoding='latin1', chunksize=10000)])
+df_turmas.head()
+
+
+#%%
+df_turmas.head()
+
+
+#%%
+df_turmas.columns.tolist()
+
+
+#%%
+#[s for s in df_turmas.columns.tolist() if 'MUN' in s]
+df_turmas.CO_MUNICIPIO
+
+
+#%%
+df_sao_bendo = df_turmas[df_turmas.CO_ESCOLA == 33064628]
+
+
+#%%
+df_sao_bendo.NO_TURMA
 
