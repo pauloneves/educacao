@@ -37,7 +37,7 @@ def enem_urls(begin=1998, end=2018):
 def baixa_dados():
     os.chdir('dados')
     try:
-        for url in chain(censo_urls(2018), enem_urls(2018)):
+        for url in chain(censo_urls(), enem_urls()):
             os.system('wget -c ' + url)
             filename = os.path.basename(url)
             with zipfile.ZipFile(filename, 'r') as zip_ref:
