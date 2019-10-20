@@ -83,7 +83,7 @@ df_escolas.loc[(df_escolas.NO_ENTIDADE.str.contains('SAO VICENTE DE PAUL')) & (d
 
 
 #%%
-df_escolas.NO_ENTIDADE.str.contains('ELEVA')
+df_escolas[df_escolas.NO_ENTIDADE.str.contains('ELEVA')]
 
 #%% [markdown]
 # SÃ£o Vicente Ã© cÃ³digo 33063648
@@ -92,6 +92,12 @@ df_escolas.NO_ENTIDADE.str.contains('ELEVA')
 df_sv = df_rio.loc[df_rio.CO_ESCOLA == 33063648]
 notas = list(filter(lambda x: 'NOTA' in x, df_sv.columns.to_list() ))
 df_sv[notas].mean()
+
+
+#%%
+df_eleva = df_rio.loc[df_rio.CO_ESCOLA == 33178860]
+notas = list(filter(lambda x: 'NOTA' in x, df_eleva.columns.to_list() ))
+df_eleva[notas].mean()
 
 
 #%%
