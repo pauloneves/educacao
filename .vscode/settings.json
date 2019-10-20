@@ -3,5 +3,6 @@
         "activityBar.background": "#55181C",
         "titleBar.activeBackground": "#772127",
         "titleBar.activeForeground": "#FEFBFB"
-    }
+    },
+    "python.pythonPath": "C:\\Users\\paulo\\.conda\\envs\\edu\\python.exe"
 }
