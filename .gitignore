@@ -2,3 +2,4 @@ dados/*
 *.zip
 *.ZIP
 __*
+.vscode/settings.json
