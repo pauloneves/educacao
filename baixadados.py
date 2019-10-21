@@ -29,11 +29,14 @@ def censo_urls(begin=2000, end=2018):
         yield u
 
 
-def enem_urls(begin=1998, end=2018):
+def enem_urls(begin=2011, #1998,
+              end=2018):
     for i in range(begin, end + 1):
         u = f"http://download.inep.gov.br/microdados/micro_enem{i}.zip"
         if i >= 2005:
-            u = f"http://download.inep.gov.br/microdados/microdados_enem{i}.zip"
+            u = f"http://download.inep.gov.br/microdados/microdados_enem_{i}.zip"
+            if i>= 2011:
+                u = f"http://download.inep.gov.br/microdados/microdados_enem{i}.zip"
         yield u
 
 
