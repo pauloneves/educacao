@@ -3,3 +3,4 @@ dados/*
 *.ZIP
 __*
 .vscode/settings.json
+*checkpoint.ipynb
