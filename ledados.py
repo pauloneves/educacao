@@ -21,43 +21,40 @@ CO_MUN = 3304557 # Rio de Janeiro
 
 
 #%%
-df_enem = pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv', sep=';', encoding='iso8859-1')
-
-
-#%%
 df_enem.CO_MUNICIPIO_ESC
 
 
 #%%
-df_rio = pd.concat(df_enem.loc[df_enem.CO_MUNICIPIO_ESC== CO_MUN] for df_enem in
-                   pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv',
+df_enem_rio = pd.concat(df_enem.loc[df_enem.CO_MUNICIPIO_ESC== CO_MUN] for df_enem in
+                        pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv',
                                 chunksize=10000,
                                 sep=';', encoding='iso8859-1'))
+df_enem_rio.dropna(subset=['CO_ESCOLA'], inplace=True)
+df_enem_rio['CO_ESCOLA'] = df_enem_rio.CO_ESCOLA.astype(int)
+df_enem_rio.head()
 
 
 #%%
-df_rio.shape
 
-
-#%%
-df_rio.head()
 
 
 #%%
-df_rio.columns.tolist()
+df_enem_rio.shape
 
 
 #%%
-df_rio.shape
-
-
-#%%
-df_g = df_rio.loc[:, [ 'CO_ESCOLA','NU_NOTA_REDACAO']].groupby('CO_ESCOLA').agg(media=('NU_NOTA_REDACAO','mean'), num=('NU_NOTA_REDACAO','count')).sort_values('media', ascending=False)
+df_g = df_enem_rio.loc[:, [ 'CO_ESCOLA','NU_NOTA_REDACAO']].groupby('CO_ESCOLA')       .agg(media=('NU_NOTA_REDACAO','mean'), num=('NU_NOTA_REDACAO','count'))       .sort_values('media', ascending=False)
 df_g.head()
 
 
 #%%
-df_melhores = df_g.loc[df_g.num>30]
+CO_SAO_BENTO = 33062633
+#df_enem_rio[df_enem_rio.CO_ESCOLA == CO_SAO_BENTO]
+df_enem_rio.loc[df_enem_rio.CO_ESCOLA ==CO_SAO_BENTO, 'NU_NOTA_REDACAO'].size()
+
+
+#%%
+df_melhores = df_g.loc[df_g.num>=20]
 df_melhores
 
 
@@ -67,8 +64,12 @@ df_escolas.head()
 
 
 #%%
+df_escolas[(df_escolas.CO_MUNICIPIO == CO_MUN ) & (df_escolas.NO_ENTIDADE.str.contains('BENTO'))]
 
-df_melhores.join(df_escolas).loc[:, ['media', 'num', 'NO_ENTIDADE']].reset_index()
+
+#%%
+
+df_melhores.join(df_escolas).loc[:, ['media', 'num', 'NO_ENTIDADE']].reset_index().head(30)
 
 
 #%%

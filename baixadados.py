@@ -43,8 +43,10 @@ def baixa_dados():
         for url in chain(censo_urls(), enem_urls()):
             os.system("wget -c " + url)
             filename = os.path.basename(url)
-            with zipfile.ZipFile(filename, "r") as zip_ref:
-                zip_ref.extractall(filename.split(".")[0])
+            dir_destino = filename.split(".")[0]
+            if not os.path.exists(dir_destino):
+                with zipfile.ZipFile(filename, "r") as zip_ref:
+                    zip_ref.extractall(dir_destino)
     finally:
         os.chdir("..")
 
