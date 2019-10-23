@@ -12,8 +12,8 @@ dependencies:
   - bleach=3.1.0=py37_0
   - boost-cpp=1.67.0=hfa6e2cd_4
   - brotli=1.0.7=h33f27b4_0
-  - ca-certificates=2019.9.11=hecc5488_0
-  - certifi=2019.6.16=py37_1
+  - ca-certificates=2019.10.16=0
+  - certifi=2019.9.11=py37_0
   - click=7.0=py37_0
   - colorama=0.4.1=py37_0
   - cycler=0.10.0=py37_0
@@ -49,7 +49,7 @@ dependencies:
   - m2w64-gmp=6.1.0=2
   - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
   - markupsafe=1.1.1=py37he774522_0
-  - matplotlib=3.1.1=py37hc8f65d3_0
+  - matplotlib=3.1.0=py37hc8f65d3_0
   - mistune=0.8.4=py37he774522_0
   - mkl=2019.4=245
   - mkl-service=2.3.0=py37hb782905_0
@@ -61,7 +61,7 @@ dependencies:
   - notebook=6.0.1=py37_0
   - numpy=1.16.5=py37h19fb1c0_0
   - numpy-base=1.16.5=py37hc3f5095_0
-  - openssl=1.1.1c=hfa6e2cd_0
+  - openssl=1.1.1d=he774522_3
   - pandas=0.25.1=py37ha925a31_0
   - pandoc=2.2.3.2=0
   - pandocfilters=1.4.2=py37_1
