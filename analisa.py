@@ -7,10 +7,12 @@ from IPython import get_ipython
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
 import IPython
 get_ipython().run_line_magic('matplotlib', 'notebook')
-pd.options.display.max_rows = None
-pd.options.display.max_columns = None
+#pd.options.display.max_rows = None
+#pd.options.display.max_columns = None
 
 
 #%%
@@ -20,8 +22,11 @@ NUM_MELHORES = 40
 #%%
 df_melhores = pd.read_feather('dados/melhores.feather')
 df_turmas = pd.read_feather('dados/turmas2018.feather')
-df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 df_escolas = pd.read_feather('dados/escolas_rio_2018.feather')
+
+
+#%%
+df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 
 #%% [markdown]
 # ## Nota final
@@ -57,7 +62,7 @@ notas_pesos =(1, 1, 1, 1, 4)
 #%%
 media_ponderada = lambda notas: np.average(notas, weights=notas_pesos)
 
-df_enem_rio['nota_final'] = df_enem_rio  .loc[:, notas_cols ]  .apply(media_ponderada, axis=1).round(0)
+df_enem_rio['nota_final'] = df_enem_rio  .loc[df_enem_rio.TP_ST_CONCLUSAO == 2, notas_cols ]  .apply(media_ponderada, axis=1).round(0)
 df_enem_rio[notas_cols+ ['nota_final']].head()
 
 
@@ -78,7 +83,7 @@ CO_PARQUE = 33065837
 
 
 #%%
-df_melhores['CO_ESCOLA'] = df_melhores.CO_ESCOLA.astype('category')
+df_melhores['CO_ESCOLA'] = df_melhores.index.astype('category')
 df_melhores['rank'] = df_melhores.mediana.rank(ascending=False, method='min')
 
 
@@ -86,10 +91,6 @@ df_melhores['rank'] = df_melhores.mediana.rank(ascending=False, method='min')
 df_melhores = df_melhores.merge(df_escolas, left_index=True, right_on='CO_ENTIDADE').loc[:,
     ['NO_ENTIDADE',  'mediana', 'num', 'rank'] + notas_cols + ['CO_ENTIDADE']]
 df_melhores
-
-
-#%%
-df_enem_rio.columns[df_enem_rio.columns.str.contains('ESC')]
 
 
 #%%
@@ -102,7 +103,6 @@ df_enem.head()
 
 #%%
 my_order = df_melhores.head(NUM_MELHORES).NO_ENTIDADE
-my_order.shape
 
 #%% [markdown]
 # Ajustar no gráfico abaixo:
@@ -115,14 +115,21 @@ df_melhores['rotulo'] = df_melhores.loc[:,['NO_ENTIDADE', 'num', 'rank']].apply(
 
 
 #%%
-import seaborn as sns
+df_melhores.head()
+
+
+#%%
+NOTA = 'nota_final'
+
 sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1})
-ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x='nota_final', orient='h',
-                 order=df_melhores.head(NUM_MELHORES).CO_ENTIDADE)
+
+df_top = df_melhores.sort_values(NOTA).head(NUM_MELHORES)
+ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x=NOTA, orient='h',
+                 order=df_top.CO_ENTIDADE)
 ax.set(ylabel='', xlabel='')
 plt.suptitle('Notas finais (ponderadas) por escola', x=0,  size=24);
 locs, _ = plt.yticks()
-plt.yticks(locs, df_melhores.rotulo);
+plt.yticks(locs, df_top.rotulo);
 
 
 #%%
