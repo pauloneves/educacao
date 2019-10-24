@@ -14,6 +14,10 @@ pd.options.display.max_columns = None
 
 
 #%%
+NUM_MELHORES = 40
+
+
+#%%
 df_melhores = pd.read_feather('dados/melhores.feather')
 df_turmas = pd.read_feather('dados/turmas2018.feather')
 df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
@@ -21,11 +25,33 @@ df_escolas = pd.read_feather('dados/escolas_rio_2018.feather')
 
 #%% [markdown]
 # ## Nota final
-# Inventando meu cálculo de nota final. pondero pelas notas mais importantes
+# Abaixo pode-se personalizar o cálculo de nota final. pondero pelas notas mais importantes.
+#
+# O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas.
+#
+# Algumas universidades consideram um peso distinto de acordo com a disciplina
+#
+# ### Pesos UFRJ
+#
+# Referência dos [pesos da UFRJ](https://oglobo.globo.com/sociedade/educacao/ufrj-usara-pesos-diferentes-em-provas-do-enem-2011-para-acesso-aos-cursos-de-graduacao-2865665).
+#
+# - Redação: peso 3 (mínimo 300)
+# - Ciência da Computação, Ciências Atuariais, Engenharias, Estatística, Matemática e Química Industrial
+#     - Matemática tem peso 4
+# - Ciências Econômicas, Geologia e Meteorologia
+#     - Matemática peso 3
+# - Engenharias e Química Industrial
+#     - Ciências da Natureza: peso 4
+# - Geologia
+#     - Ciências da Natureza: peso 3
+# - Humanas
+#     - Ciências Humanas e Linguagens: peso 2
+#
+#
 
 #%%
 notas_cols = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO', ]
-notas_pesos =(1, 2, 1, 2, 3)
+notas_pesos =(1, 1, 1, 1, 4)
 
 
 #%%
@@ -52,11 +78,7 @@ CO_PARQUE = 33065837
 
 
 #%%
-#df_melhores = df_melhores[:50]
-#df_melhores['CO_ESCOLA'] = df_melhores.CO_ESCOLA.astype('category')
-
-
-#%%
+df_melhores['CO_ESCOLA'] = df_melhores.CO_ESCOLA.astype('category')
 df_melhores['rank'] = df_melhores.mediana.rank(ascending=False, method='min')
 
 
@@ -71,7 +93,7 @@ df_enem_rio.columns[df_enem_rio.columns.str.contains('ESC')]
 
 
 #%%
-NUM_MELHORES = 40
+
 df_enem = df_melhores.head(NUM_MELHORES).merge(df_enem_rio,
                                      left_on='CO_ENTIDADE', right_on='CO_ESCOLA')\
           #.loc[:,list(notas_agg.keys()) + ['CO_ESCOLA']]
@@ -94,11 +116,11 @@ df_melhores['rotulo'] = df_melhores.loc[:,['NO_ENTIDADE', 'num', 'rank']].apply(
 
 #%%
 import seaborn as sns
-sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1, 'ytick.alignment': 'top'})
+sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1})
 ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x='nota_final', orient='h',
                  order=df_melhores.head(NUM_MELHORES).CO_ENTIDADE)
 ax.set(ylabel='', xlabel='')
-#plt.suptitle('Distribuição de notas por escola', x=.25, va='bottom', size=24);
+plt.suptitle('Notas finais (ponderadas) por escola', x=0,  size=24);
 locs, _ = plt.yticks()
 plt.yticks(locs, df_melhores.rotulo);
 
@@ -106,23 +128,11 @@ plt.yticks(locs, df_melhores.rotulo);
 #%%
 import seaborn as sns
 sns.set()
-
-
-#%%
-ax = sns.boxplot(
-    data=df_enem, y='CO_ESCOLA', x='nota_final', orient='h',
-    order=df_melhores.head(NUM_MELHORES).CO_ENTIDADE)
-
-
-#%%
-import seaborn as sns
-sns.set()
-ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x='nota_final', orient='h',
+ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x='NU_NOTA_MT', orient='h',
                  order=df_melhores.head(NUM_MELHORES).CO_ENTIDADE)
 locs, labels = plt.yticks()
 plt.yticks(locs, labels);
 
-print(locs, labels)
 
 
 #%%
@@ -132,4 +142,5 @@ sns.boxplot(data=df_enem_rio, y='NO_ENTIDADE', x='NU_NOTA_REDACAO', orient='h',
 
 #%%
 df_escolas.columns.tolist()
+
 
