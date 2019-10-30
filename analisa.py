@@ -123,6 +123,7 @@ df_melhores
 
 def compara_distribuicoes(nota):
     sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1})
+    #sns.palplot(sns.hls_palette(8, l=.3, s=.8))
 
     nota_agrupada = nota
     if nota=='nota_final':
@@ -139,8 +140,7 @@ def compara_distribuicoes(nota):
     ax.set_xlim(300, 1000)
 
 
-#compara_distribuicoes('nota_final');
-compara_distribuicoes('NU_NOTA_MT')
+compara_distribuicoes('nota_final');
 
 
 # %%
@@ -153,5 +153,140 @@ compara_distribuicoes('NU_NOTA_REDACAO');
 
 # %%
 compara_distribuicoes('NU_NOTA_CH');
+
+# %% [markdown]
+# ## Sobrevivência no ensino médio
+#
+# Quantos dos alunos que começam o ensino médio fazem Enem?
+#
+# Motivos para diminuir:
+# - Maus alunos são expulsos
+# - Maus alunos não acreditam que passarão no Enem
+# - Vai para universidade fora do Enem (ITAs, PUCs, USP, exterior etc.)
+#
+# Motivos para aumentar:
+# - Crise econômica (escolas públicas)
+# - Bolsa para bons alunos
+#
+# ### ideias
+# - comparar com último ano (dá ideia melhor da seleção feita pela escola)
+# - comparar com quem fez prova (ideia melhor de auto seleção)
+
+# %%
+etapa_col = 'TP_ETAPA_ENSINO'
+primeiro_ano = [25,  30, 35]
+# todo: tratar ensinos médios de 4 anos
+
+
+# %%
+ano = 2016
+
+import glob
+import patoolib
+import os.path
+
+def dados_turma(ano, try_rar=True):
+    dir_censo = [i for i in glob.glob(f'dados/*{ano}*') if ('censo' in i or 'educacao_basica' in i) and 'zip' not in i]
+    assert len(dir_censo) == 1, f'Só pode ter achado um arquivo e achou {len(dir_censo)}'
+
+    arquivo_turmas = glob.glob(f'{dir_censo[0]}/*{ano}*/DADOS/TURMAS.*')
+    if not arquivo_turmas:
+        arquivo_turmas = glob.glob(f'{dir_censo[0]}/DADOS/TURMAS.*')
+
+    result = [i for i in arquivo_turmas if i.lower().endswith('.csv')]
+    if not result:
+        result = [i for i in arquivo_turmas if i.lower().endswith('.zip')]
+        if try_rar and not result:
+            rar = [i for i in arquivo_turmas if i.lower().endswith('.rar')]
+            if rar:
+                patoolib.extract_archive(rar[0], outdir=os.path.dirname(rar[0]))
+                result = dados_turma(ano, False)
+
+    if result:
+        result = result[0]
+    else:
+        result = None
+    return result
+
+for i in range(2007, 2019):
+    print(">", dados_turma(i))
+#estrutura diretórios bagunçados anets de 2007
+
+
+# %%
+df_melhores
+
+
+# %%
+#todo: passar isso para ledados
+
+CO_MUN_RIO = 3304557
+def le_turma(ano, escolas, serie):
+    print(f"Lendo ano {ano}")
+    df_teste = pd.read_csv(
+            dados_turma(ano),
+            sep="|",
+            encoding="latin1",
+            nrows=5
+        )
+    col_etapa = 'TP_ETAPA_ENSINO'
+    if col_etapa not in df_teste.columns:
+        col_etapa = 'FK_COD_ETAPA_ENSINO'
+    col_escola = 'CO_ENTIDADE'
+    if col_escola not in df_teste.columns:
+        col_escola = 'PK_COD_ENTIDADE'
+
+    df_t = pd.concat((
+        df_t[(df_t[col_etapa].isin(serie))]\
+        .merge(escolas, left_on=col_escola, right_on='CO_ENTIDADE')
+        for df_t in pd.read_csv(
+            dados_turma(ano),
+            sep="|",
+            encoding="latin1",
+            chunksize=1000, error_bad_lines=False
+        )),
+        sort=True
+    )
+    df_t['ano'] = ano
+    return df_t
+
+df_primeiro_ano_turmas = pd.concat(
+    (le_turma(i, df_melhores.CO_ENTIDADE, primeiro_ano) for i in range(2013, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
+    sort=True)
+print(df_primeiro_ano_turmas.shape)
+df_primeiro_ano_turmas.head()
+
+
+# %%
+le_turma(2008, df_melhores.CO_ENTIDADE, primeiro_ano)
+
+
+# %%
+'NU_MATRICULAS' in df_ano_um.columns
+
+
+# %%
+df_ano_um = df_primeiro_ano_turmas[['CO_ENTIDADE',  'ano', 'NU_MATRICULAS']].groupby(['CO_ENTIDADE', 'ano']).sum()
+df_ano_um.loc[CO_SAO_VICENTE]
+
+
+# %%
+df_ano_um = pd.concat([df_melhores.set_index('CO_ENTIDADE')[['rotulo', 'num', 'rank']], df_ano_um['NU_MATRICULAS']], axis=1)
+df_ano_um.sort_values('rank').head(40)
+
+
+# %%
+df_ano_um.index=df_ano_um.index.astype('category')
+
+
+# %%
+df_ano_um['%'] = df_ano_um.num/df_ano_um.NU_MATRICULAS
+
+
+# %%
+df_ordered = df_ano_um.sort_values('rank').head(NUM_MELHORES).sort_values('%')
+ax = df_ordered['%'].plot.bar()
+loc, _ = plt.xticks()
+plt.xticks(loc, df_ordered.rotulo);
 
 
