@@ -214,36 +214,56 @@ for i in range(2007, 2019):
 
 
 # %%
-df_melhores
+series
 
 
 # %%
 #todo: passar isso para ledados
 
 CO_MUN_RIO = 3304557
+
+col_turmas = {
+    'id_etapa': {'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'},
+    'id_escola': {'CO_ENTIDADE', 'CO_ESCOLA', 'PK_COD_ENTIDADE'},
+    'num_matriculas': {'NU_MATRICULAS', 'NUM_MATRICULAS', 'QT_MATRICULAS'},
+    'id_municipio': {'CO_MUNICIPIO', 'FK_COD_MUNICIPIO'},
+    'id_uf': {'CO_UF', 'FK_COD_ESTADO'},
+}
+def colunas_turmas(columns):
+    result = {}
+    for col in columns:
+        for key, values in col_turmas.items():
+            if col in values:
+                result[col] = key
+    return result
+
+
 def le_turma(ano, escolas, serie):
     print(f"Lendo ano {ano}")
     df_teste = pd.read_csv(
             dados_turma(ano),
             sep="|",
             encoding="latin1",
-            nrows=5
+            nrows=1
         )
-    col_etapa = 'TP_ETAPA_ENSINO'
-    if col_etapa not in df_teste.columns:
-        col_etapa = 'FK_COD_ETAPA_ENSINO'
-    col_escola = 'CO_ENTIDADE'
-    if col_escola not in df_teste.columns:
-        col_escola = 'PK_COD_ENTIDADE'
+    map_colunas = colunas_turmas(df_teste.columns)
+
+#     col_etapa = 'TP_ETAPA_ENSINO'
+#     if col_etapa not in df_teste.columns:
+#         col_etapa = 'FK_COD_ETAPA_ENSINO'
+#     col_escola = 'CO_ENTIDADE'
+#     if col_escola not in df_teste.columns:
+#         col_escola = 'PK_COD_ENTIDADE'
 
     df_t = pd.concat((
-        df_t[(df_t[col_etapa].isin(serie))]\
-        .merge(escolas, left_on=col_escola, right_on='CO_ENTIDADE')
+        df_t.rename(columns=map_colunas).query('id_etapa.isin(@primeiro_ano)')\
+            .merge(escolas, left_on='id_escola', right_on='CO_ENTIDADE')
         for df_t in pd.read_csv(
             dados_turma(ano),
             sep="|",
             encoding="latin1",
-            chunksize=1000, error_bad_lines=False
+            chunksize=1000, error_bad_lines=False,
+            usecols=map_colunas.keys()
         )),
         sort=True
     )
@@ -251,7 +271,7 @@ def le_turma(ano, escolas, serie):
     return df_t
 
 df_primeiro_ano_turmas = pd.concat(
-    (le_turma(i, df_melhores.CO_ENTIDADE, primeiro_ano) for i in range(2013, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
+    (le_turma(i, df_melhores.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2009)), # 2019)), #2007 e 2008, 2009 falharam linhas diferentes
     sort=True)
 print(df_primeiro_ano_turmas.shape)
 df_primeiro_ano_turmas.head()
@@ -268,6 +288,11 @@ le_turma(2008, df_melhores.CO_ENTIDADE, primeiro_ano)
 # %%
 df_ano_um = df_primeiro_ano_turmas[['CO_ENTIDADE',  'ano', 'NU_MATRICULAS']].groupby(['CO_ENTIDADE', 'ano']).sum()
 df_ano_um.loc[CO_SAO_VICENTE]
+
+
+# %%
+with pd.option_context('display.max_columns', None):
+    display(df_primeiro_ano_turmas.loc[df_primeiro_ano_turmas.CO_ENTIDADE == CO_SAO_VICENTE].head())
 
 
 # %%
