@@ -80,6 +80,8 @@ df_melhores.head()
 CO_SAO_BENTO = 33062633
 CO_SAO_VICENTE = 33063648
 CO_PARQUE = 33065837
+CO_ELEVA = 33178860
+CO_MUN_RIO = 3304557
 
 
 # %%
@@ -248,15 +250,9 @@ def le_turma(ano, escolas, serie):
         )
     map_colunas = colunas_turmas(df_teste.columns)
 
-#     col_etapa = 'TP_ETAPA_ENSINO'
-#     if col_etapa not in df_teste.columns:
-#         col_etapa = 'FK_COD_ETAPA_ENSINO'
-#     col_escola = 'CO_ENTIDADE'
-#     if col_escola not in df_teste.columns:
-#         col_escola = 'PK_COD_ENTIDADE'
 
     df_t = pd.concat((
-        df_t.rename(columns=map_colunas).query('id_etapa.isin(@primeiro_ano)')\
+        df_t.rename(columns=map_colunas).query('id_etapa.isin(@primeiro_ano) and id_uf == @CO_MUN_RIO')\
             .merge(escolas, left_on='id_escola', right_on='CO_ENTIDADE')
         for df_t in pd.read_csv(
             dados_turma(ano),
@@ -271,23 +267,24 @@ def le_turma(ano, escolas, serie):
     return df_t
 
 df_primeiro_ano_turmas = pd.concat(
-    (le_turma(i, df_melhores.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2009)), # 2019)), #2007 e 2008, 2009 falharam linhas diferentes
+    (le_turma(i, df_escolas.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
     sort=True)
 print(df_primeiro_ano_turmas.shape)
 df_primeiro_ano_turmas.head()
 
 
 # %%
-le_turma(2008, df_melhores.CO_ENTIDADE, primeiro_ano)
+CO_MUN_RIO
 
 
 # %%
-'NU_MATRICULAS' in df_ano_um.columns
+df_primeiro_ano_turmas.reset_index().to_feather('primeiro_ano.feather')
 
 
 # %%
-df_ano_um = df_primeiro_ano_turmas[['CO_ENTIDADE',  'ano', 'NU_MATRICULAS']].groupby(['CO_ENTIDADE', 'ano']).sum()
-df_ano_um.loc[CO_SAO_VICENTE]
+df_ano_um = df_primeiro_ano_turmas.groupby(['CO_ENTIDADE', 'ano'])['num_matriculas'].sum()
+CO_ELEVA=33178860
+df_ano_um.loc[CO_ELEVA]
 
 
 # %%

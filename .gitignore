@@ -4,3 +4,4 @@ dados/*
 __*
 .vscode/settings.json
 *checkpoint.ipynb
+*.feather
