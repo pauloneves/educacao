@@ -224,24 +224,23 @@ series
 
 CO_MUN_RIO = 3304557
 
-col_turmas = {
-    'id_etapa': {'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'},
-    'id_escola': {'CO_ENTIDADE', 'CO_ESCOLA', 'PK_COD_ENTIDADE'},
-    'num_matriculas': {'NU_MATRICULAS', 'NUM_MATRICULAS', 'QT_MATRICULAS'},
-    'id_municipio': {'CO_MUNICIPIO', 'FK_COD_MUNICIPIO'},
-    'id_uf': {'CO_UF', 'FK_COD_ESTADO'},
-}
+col_turmas = pd.DataFrame({
+    'id_etapa':       ['category', 'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'],
+    'id_escola':      ['category', 'CO_ENTIDADE',     'PK_COD_ENTIDADE'],
+    'num_matriculas': ['uint8',    'NU_MATRICULAS',   'NUM_MATRICULAS'], #, 'QT_MATRICULAS'},
+    'id_municipio':   ['category', 'CO_MUNICIPIO',    'FK_COD_MUNICIPIO'],
+    'id_uf':          ['category', 'CO_UF',           'FK_COD_ESTADO'],
+    }, index=['dtype', '2007', '2017'])
 def colunas_turmas(columns):
-    result = {}
-    for col in columns:
-        for key, values in col_turmas.items():
-            if col in values:
-                result[col] = key
-    return result
+    columns = set(columns)
+    match = col_turmas.applymap(columns.__contains__).all(axis=1)
+    assert match.sum()==1, f"Um e somente um registro de nomes de colunas deveria "                            "casar com todas as colunas dos dados lidos de disco {str(columns)}"
+    colunas_map = col_turmas[match].iloc[0].to_dict()
+    return colunas_map
 
 
-def le_turma(ano, escolas, serie):
-    print(f"Lendo ano {ano}")
+# %%
+def mapa_de_colunas(ano):
     df_teste = pd.read_csv(
             dados_turma(ano),
             sep="|",
@@ -250,31 +249,67 @@ def le_turma(ano, escolas, serie):
         )
     map_colunas = colunas_turmas(df_teste.columns)
 
+    return {v:k for k,v in map_colunas.items()}
+#mapa_de_colunas(2014), mapa_de_colunas(2015)
 
+
+# %%
+def le_turma(ano):
+    print(f"Lendo ano {ano}")
+    map_colunas = mapa_de_colunas(ano)
     df_t = pd.concat((
-        df_t.rename(columns=map_colunas).query('id_etapa.isin(@primeiro_ano) and id_uf == @CO_MUN_RIO')\
-            .merge(escolas, left_on='id_escola', right_on='CO_ENTIDADE')
+        df_t#.rename(columns=map_colunas).query('id_etapa.isin(@primeiro_ano) and id_uf == @CO_MUN_RIO')\
+            #.merge(escolas, left_on='id_escola', right_on='CO_ENTIDADE')
         for df_t in pd.read_csv(
             dados_turma(ano),
             sep="|",
             encoding="latin1",
-            chunksize=1000, error_bad_lines=False,
-            usecols=map_colunas.keys()
+            chunksize=1000,
+            #error_bad_lines=False,
+            usecols=map_colunas.keys(),
+            #nrows=100 #debug
         )),
         sort=True
     )
     df_t['ano'] = ano
     return df_t
 
-df_primeiro_ano_turmas = pd.concat(
-    (le_turma(i, df_escolas.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
-    sort=True)
-print(df_primeiro_ano_turmas.shape)
-df_primeiro_ano_turmas.head()
+# df_primeiro_ano_turmas = pd.concat(
+#     (le_turma(i, df_escolas.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
+#     sort=True)
+# print(df_primeiro_ano_turmas.shape)
+# df_primeiro_ano_turmas.head()
+def le_tudo():
+    for i in range(2007, 2019):
+        le_turma(i)
+#ble_tudo()
 
 
 # %%
-CO_MUN_RIO
+
+
+
+# %%
+def le_turmas_padronizadas(filtro):
+    return pd.concat(
+        [le_turma(i)\
+          .rename(columns=mapa_de_colunas(i))\
+          .astype(col_turmas.loc['dtype'].to_dict()) #precisa do to_dict?
+          .query(filtro)
+          .assign(ano=i)
+         for i in
+           range(2018, 2019)
+           #range(2014, 2016)
+        ], sort=True
+    )
+CO_UF_RIO = 33
+df_primeiro_ano_turmas = le_turmas_padronizadas('id_etapa.isin(@primeiro_ano) and id_uf == @CO_UF_RIO')
+df_primeiro_ano_turmas.head(), df_primeiro_ano_turmas.shape
+
+
+# %%
+
+quit
 
 
 # %%
