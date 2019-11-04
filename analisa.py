@@ -225,12 +225,12 @@ series
 CO_MUN_RIO = 3304557
 
 col_turmas = pd.DataFrame({
-    'id_etapa':       ['category', 'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'],
-    'id_escola':      ['category', 'CO_ENTIDADE',     'PK_COD_ENTIDADE'],
-    'num_matriculas': ['uint8',    'NU_MATRICULAS',   'NUM_MATRICULAS'], #, 'QT_MATRICULAS'},
-    'id_municipio':   ['category', 'CO_MUNICIPIO',    'FK_COD_MUNICIPIO'],
-    'id_uf':          ['category', 'CO_UF',           'FK_COD_ESTADO'],
-    }, index=['dtype', '2007', '2017'])
+    'id_etapa':       ['category', 'TP_ETAPA_ENSINO', 'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'],
+    'id_escola':      ['category', 'CO_ENTIDADE',     'CO_ENTIDADE',     'PK_COD_ENTIDADE'],
+    'num_matriculas': ['uint8',    'NU_MATRICULAS',   'QT_MATRICULAS',   'NUM_MATRICULAS'],
+    'id_municipio':   ['category', 'CO_MUNICIPIO',    'CO_MUNICIPIO',    'FK_COD_MUNICIPIO'],
+    'id_uf':          ['category', 'CO_UF',           'CO_UF',           'FK_COD_ESTADO'],
+    }, index=['dtype', '2015', '2018', '2007'])
 def colunas_turmas(columns):
     columns = set(columns)
     match = col_turmas.applymap(columns.__contains__).all(axis=1)
@@ -298,7 +298,7 @@ def le_turmas_padronizadas(filtro):
           .query(filtro)
           .assign(ano=i)
          for i in
-           range(2018, 2019)
+           range(2007, 2019)
            #range(2014, 2016)
         ], sort=True
     )
@@ -308,8 +308,7 @@ df_primeiro_ano_turmas.head(), df_primeiro_ano_turmas.shape
 
 
 # %%
-
-quit
+get_ipython().run_line_magic('debug', '')
 
 
 # %%
