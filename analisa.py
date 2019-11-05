@@ -31,15 +31,15 @@ df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 # %% [markdown]
 # ## Nota final
 # Abaixo pode-se personalizar o cálculo de nota final. pondero pelas notas mais importantes.
-#
-# O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas.
-#
+# 
+# O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas. 
+# 
 # Algumas universidades consideram um peso distinto de acordo com a disciplina
-#
+# 
 # ### Pesos UFRJ
-#
+# 
 # Referência dos [pesos da UFRJ](https://oglobo.globo.com/sociedade/educacao/ufrj-usara-pesos-diferentes-em-provas-do-enem-2011-para-acesso-aos-cursos-de-graduacao-2865665).
-#
+# 
 # - Redação: peso 3 (mínimo 300)
 # - Ciência da Computação, Ciências Atuariais, Engenharias, Estatística, Matemática e Química Industrial
 #     - Matemática tem peso 4
@@ -51,8 +51,8 @@ df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 #     - Ciências da Natureza: peso 3
 # - Humanas
 #     - Ciências Humanas e Linguagens: peso 2
-#
-#
+# 
+# 
 
 # %%
 notas_cols = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO', ]
@@ -97,7 +97,7 @@ df_melhores
 
 # %%
 
-df_enem = df_melhores[['CO_ENTIDADE']].merge(df_enem_rio,
+df_enem = df_melhores[['CO_ENTIDADE']].merge(df_enem_rio, 
                      left_on='CO_ENTIDADE', right_on='CO_ESCOLA')\
           .loc[:,list(notas_cols) + ['CO_ESCOLA', 'nota_final']]
 df_enem.head()
@@ -108,9 +108,9 @@ my_order = df_melhores.head(NUM_MELHORES).NO_ENTIDADE
 
 # %% [markdown]
 # Ajustar no gráfico abaixo:
-#
+# 
 # - diminuir nomes de escola muito grandes
-#
+# 
 
 # %%
 df_melhores['rotulo'] = df_melhores.loc[:,['NO_ENTIDADE', 'num', 'rank']].apply(lambda x: '{:>s} {:03d}/{:>2.0f}'.format(x[0].title(), x[1], x[2]), axis=1)
@@ -126,11 +126,11 @@ df_melhores
 def compara_distribuicoes(nota):
     sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1})
     #sns.palplot(sns.hls_palette(8, l=.3, s=.8))
-
+    
     nota_agrupada = nota
     if nota=='nota_final':
         nota_agrupada = 'mediana'
-
+    
     df_top = df_melhores.sort_values(nota_agrupada, ascending=False).head(NUM_MELHORES)
     ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x=nota, orient='h'
                      ,order=df_top.CO_ENTIDADE)
@@ -140,7 +140,7 @@ def compara_distribuicoes(nota):
     locs, _ = plt.yticks()
     plt.yticks(locs, df_top.rotulo);
     ax.set_xlim(300, 1000)
-
+    
 
 compara_distribuicoes('nota_final');
 
@@ -158,18 +158,18 @@ compara_distribuicoes('NU_NOTA_CH');
 
 # %% [markdown]
 # ## Sobrevivência no ensino médio
-#
+# 
 # Quantos dos alunos que começam o ensino médio fazem Enem?
-#
+# 
 # Motivos para diminuir:
 # - Maus alunos são expulsos
 # - Maus alunos não acreditam que passarão no Enem
 # - Vai para universidade fora do Enem (ITAs, PUCs, USP, exterior etc.)
-#
+# 
 # Motivos para aumentar:
 # - Crise econômica (escolas públicas)
-# - Bolsa para bons alunos
-#
+# - Bolsa para bons alunos 
+# 
 # ### ideias
 # - comparar com último ano (dá ideia melhor da seleção feita pela escola)
 # - comparar com quem fez prova (ideia melhor de auto seleção)
@@ -194,7 +194,7 @@ def dados_turma(ano, try_rar=True):
     arquivo_turmas = glob.glob(f'{dir_censo[0]}/*{ano}*/DADOS/TURMAS.*')
     if not arquivo_turmas:
         arquivo_turmas = glob.glob(f'{dir_censo[0]}/DADOS/TURMAS.*')
-
+    
     result = [i for i in arquivo_turmas if i.lower().endswith('.csv')]
     if not result:
         result = [i for i in arquivo_turmas if i.lower().endswith('.zip')]
@@ -203,7 +203,7 @@ def dados_turma(ano, try_rar=True):
             if rar:
                 patoolib.extract_archive(rar[0], outdir=os.path.dirname(rar[0]))
                 result = dados_turma(ano, False)
-
+                
     if result:
         result = result[0]
     else:
@@ -216,13 +216,9 @@ for i in range(2007, 2019):
 
 
 # %%
-series
-
-
-# %%
 #todo: passar isso para ledados
 
-CO_MUN_RIO = 3304557
+CO_MUN_RIO = 3304557 
 
 col_turmas = pd.DataFrame({
     'id_etapa':       ['category', 'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'],
@@ -248,7 +244,7 @@ def mapa_de_colunas(ano):
             nrows=1
         )
     map_colunas = colunas_turmas(df_teste.columns)
-
+    
     return {v:k for k,v in map_colunas.items()}
 #mapa_de_colunas(2014), mapa_de_colunas(2015)
 
@@ -264,16 +260,16 @@ def le_turma(ano):
             dados_turma(ano),
             sep="|",
             encoding="latin1",
-            chunksize=1000,
+            chunksize=1000, 
             #error_bad_lines=False,
             usecols=map_colunas.keys(),
             #nrows=100 #debug
-        )),
+        )), 
         sort=True
     )
     df_t['ano'] = ano
     return df_t
-
+    
 # df_primeiro_ano_turmas = pd.concat(
 #     (le_turma(i, df_escolas.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
 #     sort=True)
@@ -282,11 +278,7 @@ def le_turma(ano):
 def le_tudo():
     for i in range(2007, 2019):
         le_turma(i)
-#ble_tudo()
-
-
-# %%
-
+#ble_tudo()        
 
 
 # %%
@@ -297,12 +289,13 @@ def le_turmas_padronizadas(filtro):
           .astype(col_turmas.loc['dtype'].to_dict()) #precisa do to_dict?
           .query(filtro)
           .assign(ano=i)
-         for i in
-           range(2018, 2019)
-           #range(2014, 2016)
+         for i in 
+           #range(2018, 2019)
+           #range(2014, 2016) 
+           range(2007, 2018)
         ], sort=True
     )
-CO_UF_RIO = 33
+CO_UF_RIO = 33                           
 df_primeiro_ano_turmas = le_turmas_padronizadas('id_etapa.isin(@primeiro_ano) and id_uf == @CO_UF_RIO')
 df_primeiro_ano_turmas.head(), df_primeiro_ano_turmas.shape
 
@@ -317,9 +310,9 @@ df_primeiro_ano_turmas.reset_index().to_feather('primeiro_ano.feather')
 
 
 # %%
-df_ano_um = df_primeiro_ano_turmas.groupby(['CO_ENTIDADE', 'ano'])['num_matriculas'].sum()
+df_ano_um = df_primeiro_ano_turmas.groupby(['id_escola', 'ano'])['num_matriculas'].sum()
 CO_ELEVA=33178860
-df_ano_um.loc[CO_ELEVA]
+df_ano_um.unstack().T
 
 
 # %%
