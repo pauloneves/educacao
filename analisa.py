@@ -4,6 +4,10 @@
 from IPython import get_ipython
 
 # %%
+from IPython import get_ipython
+
+
+# %%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -16,7 +20,7 @@ get_ipython().run_line_magic('matplotlib', 'notebook')
 
 
 # %%
-NUM_MELHORES = 40
+NUM_MELHORES = 60
 
 
 # %%
@@ -30,36 +34,37 @@ CO_UF_RIO = 33
 
 
 # %%
-df_turmas = pd.read_feather('dados/turmas2018.feather')
+#df_turmas = pd.read_feather('dados/turmas2018.feather')
 df_escolas = pd.read_feather('dados/escolas_rio_2018.feather')
+df_primeiro_ano_turmas = pd.read_feather('dados/primeiro_ano.feather')
 
 
 # %%
 df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 
 # %% [markdown]
-# ## Nota final
-# Abaixo pode-se personalizar o cálculo de nota final. pondero pelas notas mais importantes.
+#  ## Nota final
+#  Abaixo pode-se personalizar o cálculo de nota final. pondero pelas notas mais importantes.
 # 
-# O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas. 
+#  O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas.
 # 
-# Algumas universidades consideram um peso distinto de acordo com a disciplina
+#  Algumas universidades consideram um peso distinto de acordo com a disciplina
 # 
-# ### Pesos UFRJ
+#  ### Pesos UFRJ
 # 
-# Referência dos [pesos da UFRJ](https://oglobo.globo.com/sociedade/educacao/ufrj-usara-pesos-diferentes-em-provas-do-enem-2011-para-acesso-aos-cursos-de-graduacao-2865665).
+#  Referência dos [pesos da UFRJ](https://oglobo.globo.com/sociedade/educacao/ufrj-usara-pesos-diferentes-em-provas-do-enem-2011-para-acesso-aos-cursos-de-graduacao-2865665).
 # 
-# - Redação: peso 3 (mínimo 300)
-# - Ciência da Computação, Ciências Atuariais, Engenharias, Estatística, Matemática e Química Industrial
-#     - Matemática tem peso 4
-# - Ciências Econômicas, Geologia e Meteorologia
-#     - Matemática peso 3
-# - Engenharias e Química Industrial
-#     - Ciências da Natureza: peso 4
-# - Geologia
-#     - Ciências da Natureza: peso 3
-# - Humanas
-#     - Ciências Humanas e Linguagens: peso 2
+#  - Redação: peso 3 (mínimo 300)
+#  - Ciência da Computação, Ciências Atuariais, Engenharias, Estatística, Matemática e Química Industrial
+#      - Matemática tem peso 4
+#  - Ciências Econômicas, Geologia e Meteorologia
+#      - Matemática peso 3
+#  - Engenharias e Química Industrial
+#      - Ciências da Natureza: peso 4
+#  - Geologia
+#      - Ciências da Natureza: peso 3
+#  - Humanas
+#      - Ciências Humanas e Linguagens: peso 2
 # 
 # 
 
@@ -108,9 +113,9 @@ df_enem.head()
 my_order = df_melhores.head(NUM_MELHORES).NO_ENTIDADE
 
 # %% [markdown]
-# Ajustar no gráfico abaixo:
+#  Ajustar no gráfico abaixo:
 # 
-# - diminuir nomes de escola muito grandes
+#  - diminuir nomes de escola muito grandes
 # 
 
 # %%
@@ -158,22 +163,22 @@ compara_distribuicoes('NU_NOTA_REDACAO');
 compara_distribuicoes('NU_NOTA_CH');
 
 # %% [markdown]
-# ## Sobrevivência no ensino médio
+#  ## Sobrevivência no ensino médio
 # 
-# Quantos dos alunos que começam o ensino médio fazem Enem?
+#  Quantos dos alunos que começam o ensino médio fazem Enem?
 # 
-# Motivos para diminuir:
-# - Maus alunos são expulsos
-# - Maus alunos não acreditam que passarão no Enem
-# - Vai para universidade fora do Enem (ITAs, PUCs, USP, exterior etc.)
+#  Motivos para diminuir:
+#  - Maus alunos são expulsos
+#  - Maus alunos não acreditam que passarão no Enem
+#  - Vai para universidade fora do Enem (ITAs, PUCs, USP, exterior etc.)
 # 
-# Motivos para aumentar:
-# - Crise econômica (escolas públicas)
-# - Bolsa para bons alunos 
+#  Motivos para aumentar:
+#  - Crise econômica (escolas públicas)
+#  - Bolsa para bons alunos
 # 
-# ### ideias
-# - comparar com último ano (dá ideia melhor da seleção feita pela escola)
-# - comparar com quem fez prova (ideia melhor de auto seleção)
+#  ### ideias
+#  - comparar com último ano (dá ideia melhor da seleção feita pela escola)
+#  - comparar com quem fez prova (ideia melhor de auto seleção)
 
 # %%
 etapa_col = 'TP_ETAPA_ENSINO'
@@ -181,7 +186,7 @@ primeiro_ano = [25,  30, 35]
 # todo: tratar ensinos médios de 4 anos
 df_primeiro_ano_turmas = pd.read_feather('dados/primeiro_ano.feather')
 
-           range(2007, 2018)
+
 
 # %%
 df_ano_um = df_primeiro_ano_turmas.groupby(['id_escola', 'ano'])['num_matriculas'].sum()
@@ -191,7 +196,7 @@ df_ano_um.unstack().T
 
 # %%
 with pd.option_context('display.max_columns', None):
-    display(df_primeiro_ano_turmas.loc[df_primeiro_ano_turmas.CO_ENTIDADE == CO_SAO_VICENTE].head())
+    display(df_primeiro_ano_turmas.loc[df_primeiro_ano_turmas.id_escola == CO_SAO_VICENTE])
 
 
 # %%
@@ -208,5 +213,6 @@ df_ordered = df_ano_um.sort_values('rank').head(NUM_MELHORES).sort_values('%')
 ax = df_ordered['%'].plot.bar()
 loc, _ = plt.xticks()
 plt.xticks(loc, df_ordered.rotulo);
+
 
 

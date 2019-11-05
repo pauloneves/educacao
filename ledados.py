@@ -19,9 +19,9 @@ NUM_MELHORES = 60
 # ## Lendo dados do Enem do Rio de Janeiro
 
 # %%
-df_enem_rio = pd.concat(df_enem.loc[df_enem.CO_UF_ESC== CO_UF_RIO] for df_enem in
-                        pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv',
-                                chunksize=10000,
+df_enem_rio = pd.concat(df_enem.loc[df_enem.CO_UF_ESC== CO_UF_RIO] for df_enem in 
+                        pd.read_csv('dados\microdados_enem2018\DADOS\MICRODADOS_ENEM_2018.csv', 
+                                chunksize=10000, 
                                 sep=';', encoding='iso8859-1'))
 df_enem_rio.dropna(subset=['CO_ESCOLA'], inplace=True)
 df_enem_rio['CO_ESCOLA'] = df_enem_rio.CO_ESCOLA.astype(int)
@@ -46,7 +46,7 @@ notas = list(filter(lambda x: 'NOTA' in x, df_sv.columns.to_list() ))
 df_sv[notas].mean()
 
 # %% [markdown]
-# ## Lê dados históricos de turmas
+# ## Lê dados históricos de turmas 
 
 # %%
 primeiro_ano = [25,  30, 35]
@@ -64,7 +64,7 @@ def dados_turma(ano, try_rar=True):
     arquivo_turmas = glob.glob(f'{dir_censo[0]}/*{ano}*/DADOS/TURMAS.*')
     if not arquivo_turmas:
         arquivo_turmas = glob.glob(f'{dir_censo[0]}/DADOS/TURMAS.*')
-
+    
     result = [i for i in arquivo_turmas if i.lower().endswith('.csv')]
     if not result:
         result = [i for i in arquivo_turmas if i.lower().endswith('.zip')]
@@ -73,7 +73,7 @@ def dados_turma(ano, try_rar=True):
             if rar:
                 patoolib.extract_archive(rar[0], outdir=os.path.dirname(rar[0]))
                 result = dados_turma(ano, False)
-
+                
     if result:
         result = result[0]
     else:
@@ -89,7 +89,7 @@ for i in range(2007, 2019):
 col_turmas = pd.DataFrame({
     'id_etapa':       ['category', 'TP_ETAPA_ENSINO', 'TP_ETAPA_ENSINO', 'FK_COD_ETAPA_ENSINO'],
     'id_escola':      ['category', 'CO_ENTIDADE',     'CO_ENTIDADE',     'PK_COD_ENTIDADE'],
-    'num_matriculas': ['uint8',    'NU_MATRICULAS',   'QT_MATRICULAS',   'NUM_MATRICULAS'],
+    'num_matriculas': ['uint8',    'NU_MATRICULAS',   'QT_MATRICULAS',   'NUM_MATRICULAS'], 
     'id_municipio':   ['category', 'CO_MUNICIPIO',    'CO_MUNICIPIO',    'FK_COD_MUNICIPIO'],
     'id_uf':          ['category', 'CO_UF',           'CO_UF',           'FK_COD_ESTADO'],
     }, index=['dtype', '2015', '2018', '2007'])
@@ -110,7 +110,7 @@ def mapa_de_colunas(ano):
             nrows=1
         )
     map_colunas = colunas_turmas(df_teste.columns)
-
+    
     return {v:k for k,v in map_colunas.items()}
 #mapa_de_colunas(2014), mapa_de_colunas(2015)
 
@@ -126,16 +126,16 @@ def le_turma(ano):
             dados_turma(ano),
             sep="|",
             encoding="latin1",
-            chunksize=1000,
+            chunksize=1000, 
             #error_bad_lines=False,
             usecols=map_colunas.keys(),
             #nrows=100 #debug
-        )),
+        )), 
         sort=True
     )
     df_t['ano'] = ano
     return df_t
-
+    
 # df_primeiro_ano_turmas = pd.concat(
 #     (le_turma(i, df_escolas.CO_ENTIDADE, primeiro_ano) for i in range(2007, 2019)), #2007 e 2008, 2009 falharam linhas diferentes
 #     sort=True)
@@ -144,7 +144,7 @@ def le_turma(ano):
 def le_tudo():
     for i in range(2007, 2019):
         le_turma(i)
-#le_tudo()
+#le_tudo()        
 
 
 # %%
@@ -155,12 +155,12 @@ def le_turmas_padronizadas(filtro):
           .astype(col_turmas.loc['dtype'].to_dict()) #precisa do to_dict?
           .query(filtro)
           .assign(ano=i)
-         for i in
+         for i in 
            range(2007, 2019)
-           #range(2014, 2016)
+           #range(2014, 2016) 
         ], sort=True
     )
-
+                         
 df_primeiro_ano_turmas = le_turmas_padronizadas('id_etapa.isin(@primeiro_ano) and id_uf == @CO_UF_RIO')
 print(df_primeiro_ano_turmas.shape)
 df_primeiro_ano_turmas.head()
@@ -170,7 +170,7 @@ df_primeiro_ano_turmas.head()
 
 # %%
 
-df_turmas.reset_index().to_feather('dados/turmas2018.feather')
+#df_turmas.reset_index().to_feather('dados/turmas2018.feather')
 df_enem_rio.reset_index().to_feather('dados/enem_rio_2018.feather')
 df_escolas.reset_index().to_feather('dados/escolas_rio_2018.feather')
 df_primeiro_ano_turmas.reset_index().to_feather('dados/primeiro_ano.feather')
