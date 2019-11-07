@@ -1,20 +1,13 @@
-# E
+# título
 
-1. import pandas_profiling;pd.read_csv('').profile_report()
-1. Selecionar escolas a analisar:
-    1. Critérios da escola no enem:
-        * No Rio de Janeiro
-        * 20 alunos fizeram a prova
-    1. Critérios do censo escolar
-        * percentagem alta dos alunos fizeram a prova
-        * escolas privadas, públicas, IFE, militares (IME não aceita Enem)
-
-1. Fazer ranking das notas (redação peso 2)
-1. Ver nome das X melhores escolas
-1. Para melhores escolas, comparar:
-    1. Número de alunos primeiro e último ano
-    2. percentagem alunos fizeram provas
-1. Ver distribuição das notas das escolas
+1. import pandas_profiling;pd.read_csv(''
 1. Comparo melhores alunos das melhores escolas, comparando especialmente alunos das escolas que mais selecionaram, com as que menos selecionaram. 
     1. Acredito que as boas  escolas públicas sejam as que tenham menos seleção
     1. Ver reprovação das escolas
+
+- Critérios filtro de escolas:
+  - tirei A a Z, PH e Pensi (será que os outros critérios não bastam?)
+  - 80% melhor percentil: para compensar quem reprova os alunos ruins. Ex: Santo Agostinho tem 80%, o Santo Inácio tem 95%
+  - escolas que aumentam o número de alunos do 1º ano para o enem. Pode ser injusto com colégios em que saíram alunos.
+  - só conta alunos que terminaram naquele ano (não tem quem está refazendo a prova ou treinando)
+  - escolas com pelo menos 30 alunos fazendo a prova
