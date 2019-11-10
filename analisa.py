@@ -4,23 +4,20 @@
 from IPython import get_ipython
 
 # %%
-from IPython import get_ipython
-
-
-# %%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
 import IPython
-get_ipython().run_line_magic('matplotlib', 'notebook')
+get_ipython().run_line_magic('matplotlib', 'inline')
 #pd.options.display.max_rows = None
 #pd.options.display.max_columns = None
 
 
 # %%
-NUM_MELHORES = 60
+NUM_MELHORES = 65
+MIN_ALUNOS = 30 #Mínimo de alunos que fizeram Enem para considerar a escola
 
 
 # %%
@@ -28,13 +25,13 @@ CO_SAO_BENTO = 33062633
 CO_SAO_VICENTE = 33063648
 CO_PARQUE = 33065837
 CO_ELEVA = 33178860
-
+CO_ST_INACIO = 33063729
 CO_MUN_RIO = 3304557
 CO_UF_RIO = 33
 
 
 # %%
-#df_turmas = pd.read_feather('dados/turmas2018.feather')
+
 df_escolas = pd.read_feather('dados/escolas_rio_2018.feather')
 df_primeiro_ano_turmas = pd.read_feather('dados/primeiro_ano.feather')
 
@@ -43,7 +40,7 @@ df_primeiro_ano_turmas = pd.read_feather('dados/primeiro_ano.feather')
 df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 
 # %% [markdown]
-#  ## Nota final
+#  ## Cálculo da nota final
 #  Abaixo pode-se personalizar o cálculo de nota final. pondero pelas notas mais importantes.
 # 
 #  O Inep costuma considerar a redação como tendo um peso igual às outras disciplinas.
@@ -70,47 +67,47 @@ df_enem_rio = pd.read_feather('dados/enem_rio_2018.feather')
 
 # %%
 notas_cols = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO', ]
-notas_pesos =(1, 1, 1, 1, 4)
+notas_pesos =(1, 1, 1, 1, 4) #peso do Inep com redação igual os demais
 
 
 # %%
 media_ponderada = lambda notas: np.average(notas, weights=notas_pesos)
 
-df_enem_rio['nota_final'] = df_enem_rio  .loc[df_enem_rio.TP_ST_CONCLUSAO == 2, notas_cols ]  .apply(media_ponderada, axis=1).round(0)
+#df_enem_rio me dá as notas do enem de cada aluno de escola do rio de janeiro 
+df_enem_rio['nota_final'] = df_enem_rio.loc[df_enem_rio.TP_ST_CONCLUSAO == 2, notas_cols ]                                       .apply(media_ponderada, axis=1)                                       .round(0)
 df_enem_rio[notas_cols+ ['nota_final']].head()
 
 
 # %%
+#df_enem sãos as notas agrupadas por escola e ordenadas da melhor para a pior
+
 notas_agg = {col: (col, 'median') for col in notas_cols}
 notas_agg['mediana'] = ('nota_final', 'median')
 notas_agg['num'] = ('nota_final', 'count')
 
-df_melhores = df_enem_rio.groupby('CO_ESCOLA')       .agg(**notas_agg).sort_values('mediana', ascending=False)
-df_melhores = df_melhores[df_melhores.num > 30] #corte arbitrário, só quem tem mais de 30 alunos
-df_melhores.head()
+df_enem = df_enem_rio.groupby('CO_ESCOLA')                         .agg(**notas_agg)                         .sort_values('mediana', ascending=False)                         .query('num > @MIN_ALUNOS')#corte arbitrário
+df_enem
 
 
 # %%
-df_melhores['CO_ESCOLA'] = df_melhores.index.astype('category')
-df_melhores['rank'] = df_melhores.mediana.rank(ascending=False, method='min')
+df_enem['rank'] = df_enem.mediana.rank(ascending=False, method='min')
 
 
 # %%
-df_melhores = df_melhores.merge(df_escolas, left_index=True, right_on='CO_ENTIDADE').loc[:,
-    ['NO_ENTIDADE',  'mediana', 'num', 'rank'] + notas_cols + ['CO_ENTIDADE']]
-df_melhores
+#vamos colocar o nome das escolas
+df_enem = df_enem.merge(df_escolas[['NO_ENTIDADE', 'CO_ENTIDADE']], left_index=True, right_on='CO_ENTIDADE')
 
 
 # %%
+df_enem
 
-df_enem = df_melhores[['CO_ENTIDADE']].merge(df_enem_rio, 
-                     left_on='CO_ENTIDADE', right_on='CO_ESCOLA')\
-          .loc[:,list(notas_cols) + ['CO_ESCOLA', 'nota_final']]
-df_enem.head()
-
+# %% [markdown]
+# Respondendo uma pergunta sinistra: quantas escolas com ensino médio não tiveram qualquer aluno fazendo Enem?
+# 
+# ih, não dá, já filtrei o df_enem
 
 # %%
-my_order = df_melhores.head(NUM_MELHORES).NO_ENTIDADE
+my_order = df_enem.head(NUM_MELHORES).NO_ENTIDADE
 
 # %% [markdown]
 #  Ajustar no gráfico abaixo:
@@ -119,26 +116,67 @@ my_order = df_melhores.head(NUM_MELHORES).NO_ENTIDADE
 # 
 
 # %%
-df_melhores['rotulo'] = df_melhores.loc[:,['NO_ENTIDADE', 'num', 'rank']].apply(lambda x: '{:>s} {:03d}/{:>2.0f}'.format(x[0].title(), x[1], x[2]), axis=1)
+df_nomes_grandes = df_enem[:100][['CO_ENTIDADE', 'NO_ENTIDADE']]
+df_nomes_grandes['comprido'] = df_nomes_grandes.NO_ENTIDADE.str.len()
+df_nomes_grandes.sort_values('comprido', ascending=False).head(30)
+
+#vamos ajustar alguns nomes
+df_enem.loc[df_enem.CO_ENTIDADE==33176825, 'NO_ENTIDADE'] = 'COLEGIO SANTO AGOSTINHO - BARRA'
+df_enem.loc[df_enem.CO_ENTIDADE==33066523, 'NO_ENTIDADE'] = 'CAP - UERJ'
+df_enem.loc[df_enem.CO_ENTIDADE==33132534, 'NO_ENTIDADE'] = 'GARRA VESTIBULARES - UNID 1'
+df_enem.loc[df_enem.CO_ENTIDADE==33057206, 'NO_ENTIDADE'] = 'INSTITUTO GAYLUSSAC'
+df_enem.loc[df_enem.CO_ENTIDADE==33142726, 'NO_ENTIDADE'] = 'COL ISRAELITA LIESSIN'
+df_enem.loc[df_enem.CO_ENTIDADE==33027722, 'NO_ENTIDADE'] = 'COLEGIO SAGRADO CORACAO DE JESUS'
+df_enem.loc[df_enem.CO_ENTIDADE==33065250, 'NO_ENTIDADE'] = 'CAP - UFRJ'
+df_enem.loc[df_enem.CO_ENTIDADE==33106754, 'NO_ENTIDADE'] = 'COLEGIO PROF CLOVIS TAVARES PRO-UNI'
+df_enem.loc[df_enem.CO_ENTIDADE==33155259, 'NO_ENTIDADE'] = 'COLEGIO SALESIANO REGIAO OCEANICA'
+
+for i, j in (('COLEGIO', 'COL'),
+             ('INSTITUTO', 'INST'),
+             ('FILIAL', '-'),
+             ('UNIDADE ', ''),
+             ('PROFESSOR', 'PROF'),
+             ('EDUCACIONAL', 'EDUC.'),
+            ):
+    df_enem['NO_ENTIDADE'] = df_enem.NO_ENTIDADE.str.replace(i, j)
+
+df_nomes_grandes.sort_values('comprido', ascending=False).head(30)    
 
 
 # %%
-df_melhores
+df_enem['rotulo'] = df_enem.loc[:,['NO_ENTIDADE', 'num', 'rank']].apply(lambda x: '{:>s} {:03d}/{:>2.0f}'.format(x[0].title(), x[1], x[2]), axis=1)
 
+
+# %%
+df_enem
+
+# %% [markdown]
+# ## Distribuição das notas parece bimodal
+# 
+# Um monte de escolas com notas baixa (500), depois outro grupo com notas mais altas (700). Seria legal ver as distribuições por grupos.
+
+# %%
+ax = df_enem.mediana.hist(bins=24).plot();
+#ax.tick_params(which='both', bottom=False, labelbottom=False)
+
+# %% [markdown]
+# ## Comparando distribuições das escolas
+# 
+# Legenda: Nome da escola <nº alunos fizeram Enem>/<posição ranking nota final>
 
 # %%
 
 
 def compara_distribuicoes(nota):
-    sns.set(rc={'figure.figsize':(11,18), 'axes.xmargin': .1})
+    sns.set(rc={'figure.figsize':(14,18), 'axes.xmargin': .1})
     #sns.palplot(sns.hls_palette(8, l=.3, s=.8))
     
     nota_agrupada = nota
     if nota=='nota_final':
         nota_agrupada = 'mediana'
     
-    df_top = df_melhores.sort_values(nota_agrupada, ascending=False).head(NUM_MELHORES)
-    ax = sns.boxplot(data=df_enem, y='CO_ESCOLA', x=nota, orient='h'
+    df_top = df_enem.sort_values(nota_agrupada, ascending=False).head(NUM_MELHORES)
+    ax = sns.boxplot(data=df_enem_rio, y='CO_ESCOLA', x=nota, orient='h'
                      ,order=df_top.CO_ENTIDADE)
     ax.set(ylabel='', xlabel='')
     plt.gcf().subplots_adjust(top=.95)
@@ -150,6 +188,9 @@ def compara_distribuicoes(nota):
 
 compara_distribuicoes('nota_final');
 
+
+# %% [markdown]
+# Um dado estranho, o Santo Inácio tem 245 alunos que disseram que completaram agora, mas há apenas 235 no 3º ano de 2018. Será que é preenchimento errado? Será que estou contando jovens e adultos? Será que acontece o mesmo com outras escolas?
 
 # %%
 compara_distribuicoes('NU_NOTA_MT');
@@ -191,28 +232,127 @@ df_primeiro_ano_turmas = pd.read_feather('dados/primeiro_ano.feather')
 # %%
 df_ano_um = df_primeiro_ano_turmas.groupby(['id_escola', 'ano'])['num_matriculas'].sum()
 CO_ELEVA=33178860
-df_ano_um.unstack().T
+df_ano_um = df_ano_um.unstack()
+df_ano_um
 
 
 # %%
-with pd.option_context('display.max_columns', None):
-    display(df_primeiro_ano_turmas.loc[df_primeiro_ano_turmas.id_escola == CO_SAO_VICENTE])
+df_ano_um[df_ano_um==1] = np.nan  # tem um Pensi aqui com dado esquisito
+porcentagem_variacao = .5
+anos_idx = slice(0, 11) #colunas com dados de alunos no primeiro ano
+df = (df_ano_um.drop(2007, axis='columns')
+          .merge(df_enem.head(NUM_MELHORES)[['CO_ENTIDADE', 'rotulo', 'rank']], 
+                 left_index=True, right_on='CO_ENTIDADE') #pegando nome das escolas e só das melhores
+         .set_index('rotulo')
+         .assign(alta_variacao=  #variação do número de alunos
+                 lambda df: (df.iloc[:,anos_idx].max(axis='columns') - df.iloc[:,anos_idx].min(axis='columns'))
+                            /df.iloc[:,anos_idx].max(axis='columns'))
+         .query('alta_variacao > @porcentagem_variacao')
+         .sort_values('alta_variacao', ascending=False) #mostrando primeiro as com maior variação
+         .drop(['CO_ENTIDADE', 'rank'], axis='columns')
+         .dropna(thresh=6) # joga fora quem não tem pelo menos 6 anos preenchidos
+     )
+alta_variacao = df.pop('alta_variacao')
+df = df.T
+
+sns.set(rc={'figure.figsize':(10,18), 'axes.xmargin': .1})
+axes = df.plot.line(subplots=True, layout=(11,3), sharey=True);
+
+i = 0
+for axes2 in axes:
+    for ax in axes2:
+        if i < len(alta_variacao): 
+            ax.set_title(df.columns[i], ha='left', x=0, size=10)
+            #ax.legend().set_visible(False)
+            ax.legend(['{:.0%}'.format(alta_variacao.iloc[i])])
+        i += 1
+sns.set()
+fig = plt.gcf()
+fig.suptitle("Bons colégios com variação de mais de {:.0%} nº alunos no 1º ano".format(porcentagem_variacao), 
+                 size=22, ha='left', x=0);
+plt.subplots_adjust(hspace=.3, wspace=.2, left=.04, top=.93, bottom=0)
+plt.xticks(range(2008, 2019));
 
 
 # %%
-df_ano_um = pd.concat([df_melhores.set_index('CO_ENTIDADE')[['rotulo', 'num', 'rank']], df_ano_um['NU_MATRICULAS']], axis=1)
-df_ano_um.sort_values('rank').head(40)
+get_ipython().run_line_magic('debug', '')
+
+# %% [markdown]
+# - Pedro II de Realengo aumentou bastante
+# - Abel reduzindo drasticamente
+# - 2012 queda drástica no Pensi, com outra filial aumentando
+# - PH varia muito (com queda drástica no final)
+
+# %%
+df = df_enem.head(NUM_MELHORES).set_index('CO_ENTIDADE')
+df = df.join(df_ano_um[[2016]] )
+df['%'] = df.num/df[2016]
+df.sort_values('%', ascending=False)
+df[df['%']<1.5].plot.scatter(x='%', y='mediana', c='blue');
+
+
+# %% [markdown]
+# Entre os bem colocados, quem aumenta o número de alunos?
+
+# %%
+df.loc[df['%']>=1, ['rotulo', '%', 'mediana', 'rank', 'num']].sort_values('%', ascending=False)
+
+# %% [markdown]
+# Quem aumenta o número de alunos? Pensi, de A a Z e PH. Estes são mais cursinhos pré-vestibular do que escolas. Vou tirá-los da lista. O Colégio [Dom Bosco](https://www.colegiodombosco.com.br/) é um colégio tradicional de Resende, então vou manter.
+
+# %%
+df_sem_outliers = df[df['%']<1.06]
+sns.set()
+sns.regplot(data=df_sem_outliers, x='%', y='mediana');
+print("A correlação de {:.2n} entre notas e perdas de alunos é fraca".format(df_sem_outliers[['%', 'mediana']].corr().iat[0,1]))
 
 
 # %%
-df_ano_um['%'] = df_ano_um.num/df_ano_um.NU_MATRICULAS
+df.loc[:, ['rotulo', 2016, 'num', '%', 'mediana', 'rank']].style.hide_index().format({'%': '{:.0%}'.format})
+
+# %% [markdown]
+# Entre os que mais diminuem o número de alunos também estão o Pensi e o PH. Impressionante, o CAP da Uerj tem bem poucos alunos fazendo Enem.
+
+# %%
+df_cursos = df_enem.loc[(df_enem.rotulo.str.contains('Ph|Curso Pensi|A A Z')),['rotulo', 'rank', 'mediana', 'CO_ENTIDADE']].style.hide_index()
+df_cursos
 
 
 # %%
-df_ordered = df_ano_um.sort_values('rank').head(NUM_MELHORES).sort_values('%')
-ax = df_ordered['%'].plot.bar()
-loc, _ = plt.xticks()
-plt.xticks(loc, df_ordered.rotulo);
+df.loc[df['%']<4, '%'].hist(bins=30).plot();
 
 
+# %%
+df.loc[df['%']<4, '%'].describe()
+
+
+# %%
+df['%'].quantile([i/10 for i in range(11)])
+
+# %% [markdown]
+# Retirando quem eu não quero contar:
+# - todos os cursinhos: Pensi, A a Z e PH
+# - quem aumenta o número de alunos (só fica o Dom Bosco com variação 1.02)
+# - quem corta aluno demais, isto é os 80% que menos cortam
+# 
+# e entre estes pegaremos só os alunos que estão no 80 quantil. Isso privilegia as escolas que menos cortam alunos.
+
+# %%
+menor_quantil = df['%'].quantile(.2) #arbitrário
+menor_quantil
+
+
+# %%
+df_escolas_selecionadas = df[(df['%'] >= menor_quantil) & (df['%'] < 1.02)]
+print("Antes dos cortes tínhamos {:n} melhores escolas, depois ficamos com {:n}, cortando {:.1%}"
+      .format( NUM_MELHORES, len(df_escolas_selecionadas), (NUM_MELHORES-len(df_escolas_selecionadas))/NUM_MELHORES) )
+
+# %% [markdown]
+# Agora vem o radical, pegaremos apenas os melhores 80 percentil das notas.
+
+# %%
+#dever de casa
+
+# %% [markdown]
+# analisar colégios que estão com NAN na percentagem acima, especialmente o **Santo Agostinho Barra**
 
