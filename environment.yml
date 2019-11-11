@@ -35,11 +35,14 @@ dependencies:
   - jedi=0.15.1=py37_0
   - jinja2=2.10.3=py_0
   - jpeg=9b=hb83a4c4_2
+  - json5=0.8.5=py_0
   - jsonschema=3.0.2=py37_0
   - jupyter=1.0.0=py37_7
   - jupyter_client=5.3.4=py37_0
   - jupyter_console=6.0.0=py_0
   - jupyter_core=4.6.0=py37_0
+  - jupyterlab=1.1.4=pyhf63ae98_0
+  - jupyterlab_server=1.0.6=py_0
   - kiwisolver=1.1.0=py37ha925a31_0
   - libboost=1.67.0=hfd51bdf_4
   - libpng=1.6.37=h2a8f88b_0
