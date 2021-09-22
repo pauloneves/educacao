@@ -1,17 +1,19 @@
 #!/bin/env python
 """
 Baixando arquivos de dados do censo
+
+Pode rodar várias vezes que não baixará de novo arquivos
 """
 
-import io
 import os
 import glob
-import re
 import zipfile
 from itertools import chain
 
+import const
 
-def censo_urls(begin=2000, end=2018):
+
+def censo_urls(begin=2000, end=const.ANO_ULT):
     for i in range(end, begin - 1, -1):
         if i <= 2003:
             u = "http://download.inep.gov.br/microdados/micro_censo_escolar%i.zip" % i
@@ -29,13 +31,12 @@ def censo_urls(begin=2000, end=2018):
         yield u
 
 
-def enem_urls(begin=2011, #1998,
-              end=2018):
+def enem_urls(begin=2011, end=const.ANO_ULT):  # 1998,
     for i in range(begin, end + 1):
         u = f"http://download.inep.gov.br/microdados/micro_enem{i}.zip"
         if i >= 2005:
             u = f"http://download.inep.gov.br/microdados/microdados_enem_{i}.zip"
-            if i>= 2011:
+            if i >= 2011:
                 u = f"http://download.inep.gov.br/microdados/microdados_enem{i}.zip"
         yield u
 

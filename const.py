@@ -14,3 +14,7 @@ CO_UF_RIO = 33 # RJ
 
 MIN_ALUNOS = 30 # Mínimo de alunos fazendo Enem para considerar na análise
 NUM_MELHORES = 60
+ANO_ULT=2019 # último ano a processar
+
+
+
