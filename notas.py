@@ -84,3 +84,35 @@ def enem_ajusta_cols(df):
             "NU_NOTA_REDACAO": "nota_redação",
         }
     )
+
+
+def ajusta_nomes(df_enem):
+    df_enem.loc[
+        df_enem.CO_ENTIDADE == 33176825, "Escola"
+    ] = "COLEGIO SANTO AGOSTINHO - BARRA"
+    df_enem.loc[df_enem.CO_ENTIDADE == 33066523, "Escola"] = "CAP - UERJ"
+    df_enem.loc[
+        df_enem.CO_ENTIDADE == 33132534, "Escola"
+    ] = "GARRA VESTIBULARES - UNID 1"
+    df_enem.loc[df_enem.CO_ENTIDADE == 33057206, "Escola"] = "INSTITUTO GAYLUSSAC"
+    df_enem.loc[df_enem.CO_ENTIDADE == 33142726, "Escola"] = "COL ISRAELITA LIESSIN"
+    df_enem.loc[
+        df_enem.CO_ENTIDADE == 33027722, "Escola"
+    ] = "COLEGIO SAGRADO CORACAO DE JESUS"
+    df_enem.loc[df_enem.CO_ENTIDADE == 33065250, "Escola"] = "CAP - UFRJ"
+    df_enem.loc[
+        df_enem.CO_ENTIDADE == 33106754, "Escola"
+    ] = "COLEGIO PROF CLOVIS TAVARES PRO-UNI"
+    df_enem.loc[
+        df_enem.CO_ENTIDADE == 33155259, "Escola"
+    ] = "COLEGIO SALESIANO REGIAO OCEANICA"
+
+    for i, j in (
+        ("COLEGIO", "COL"),
+        ("INSTITUTO", "INST"),
+        ("FILIAL", "-"),
+        ("UNIDADE ", ""),
+        ("PROFESSOR", "PROF"),
+        ("EDUCACIONAL", "EDUC."),
+    ):
+        df_enem["Escola"] = df_enem.Escola.str.replace(i, j)
